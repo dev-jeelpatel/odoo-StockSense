@@ -11,6 +11,8 @@ import { warehousesRouter } from "./modules/warehouses/warehouses.routes";
 import { locationsRouter } from "./modules/locations/locations.routes";
 import { productsRouter } from "./modules/products/products.routes";
 import { pickingsRouter } from "./modules/pickings/pickings.routes";
+import { movesRouter } from "./modules/moves/moves.routes";
+import { stockRouter } from "./modules/stock/stock.routes";
 
 export const app = express();
 
@@ -28,6 +30,8 @@ app.use("/api/warehouses", warehousesRouter);
 app.use("/api/locations", locationsRouter);
 app.use("/api/products", productsRouter);
 app.use("/api/pickings", pickingsRouter);
+app.use("/api/moves", movesRouter);
+app.use("/api/stock", stockRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
