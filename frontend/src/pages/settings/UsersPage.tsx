@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Users, ShieldCheck, Trash2, ChevronDown } from "lucide-react";
+import { Plus, Users, ShieldCheck, Trash2, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { useUsers, useUpdateUserRole, useDeleteUser } from "@/api/users";
 import { getApiErrorMessage } from "@/lib/api-client";
 import { useAuth } from "@/store/auth-context";
 import type { User } from "@/types";
+import { AddMemberDialog } from "./AddMemberDialog";
 
 function initials(name: string) { return name.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase(); }
 const ROLE_COLORS = { MANAGER: { bg: "oklch(0.62 0.28 270 / 12%)", color: "oklch(0.48 0.26 270)" }, STAFF: { bg: "oklch(0 0 0 / 6%)", color: "var(--muted-foreground)" } };
@@ -22,6 +23,7 @@ export function UsersPage() {
   const deleteUser = useDeleteUser();
   const { user: me } = useAuth();
   const [deleting, setDeleting] = useState<User | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
 
   async function handleRoleChange(id: string, role: "MANAGER" | "STAFF") {
     try { await updateRole.mutateAsync({ id, role }); toast.success("Role updated"); }
@@ -36,7 +38,16 @@ export function UsersPage() {
 
   return (
     <div className="flex h-full flex-col">
-      <PageHeader title="Team Members" description="Manage user roles and access across your organization." />
+      <PageHeader
+        title="Team Members"
+        description="Manage user roles and access across your organization."
+        actions={
+          <Button onClick={() => setAddOpen(true)}>
+            <Plus className="size-4" />
+            Add Member
+          </Button>
+        }
+      />
       <div className="flex-1 overflow-y-auto p-6">
         <div className="overflow-hidden rounded-xl border bg-card">
           <Table>
@@ -96,6 +107,7 @@ export function UsersPage() {
           <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction className="bg-destructive text-white hover:bg-destructive/90" onClick={handleDelete}>Remove</AlertDialogAction></AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <AddMemberDialog open={addOpen} onOpenChange={setAddOpen} />
     </div>
   );
 }

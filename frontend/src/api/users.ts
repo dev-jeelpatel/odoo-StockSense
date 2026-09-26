@@ -5,6 +5,14 @@ import type { User } from "@/types";
 export function useUsers() {
   return useQuery({ queryKey: ["users"], queryFn: async () => (await apiClient.get<User[]>("/users")).data });
 }
+export function useCreateUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { name: string; email: string; password: string; role: "MANAGER" | "STAFF" }) =>
+      (await apiClient.post<{ user: User }>("/auth/signup", input)).data,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
+  });
+}
 export function useUpdateUserRole() {
   const queryClient = useQueryClient();
   return useMutation({
