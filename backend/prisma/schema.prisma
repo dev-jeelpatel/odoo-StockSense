@@ -1,0 +1,217 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  MANAGER
+  STAFF
+}
+
+enum LocationKind {
+  INTERNAL
+  VENDOR
+  CUSTOMER
+  VIRTUAL_ADJUSTMENT
+}
+
+enum PickingType {
+  RECEIPT
+  DELIVERY
+  INTERNAL
+  ADJUSTMENT
+}
+
+enum PickingStatus {
+  DRAFT
+  WAITING
+  READY
+  DONE
+  CANCELLED
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         UserRole @default(STAFF)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  passwordResetOtps PasswordResetOtp[]
+  pickings          Picking[]          @relation("PickingResponsible")
+
+  @@map("users")
+}
+
+model PasswordResetOtp {
+  id         String    @id @default(uuid())
+  userId     String    @map("user_id")
+  otpHash    String    @map("otp_hash")
+  expiresAt  DateTime  @map("expires_at")
+  consumedAt DateTime? @map("consumed_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_otps")
+}
+
+model Warehouse {
+  id        String   @id @default(uuid())
+  name      String
+  shortCode String   @unique @map("short_code")
+  address   String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  locations         Location[]
+  pickings          Picking[]
+  referenceSequence ReferenceSequence[]
+
+  @@map("warehouses")
+}
+
+model Location {
+  id               String       @id @default(uuid())
+  warehouseId      String?      @map("warehouse_id")
+  name             String
+  shortCode        String       @map("short_code")
+  kind             LocationKind @default(INTERNAL)
+  parentLocationId String?      @map("parent_location_id")
+  createdAt        DateTime     @default(now()) @map("created_at")
+
+  warehouse      Warehouse? @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  parentLocation Location?  @relation("LocationHierarchy", fields: [parentLocationId], references: [id])
+  childLocations Location[] @relation("LocationHierarchy")
+
+  quants            StockQuant[]
+  pickingsAsSource  Picking[]       @relation("PickingSource")
+  pickingsAsDest    Picking[]       @relation("PickingDest")
+  moveLinesAsSource StockMoveLine[] @relation("MoveLineSource")
+  moveLinesAsDest   StockMoveLine[] @relation("MoveLineDest")
+
+  @@unique([warehouseId, shortCode])
+  @@map("locations")
+}
+
+model ProductCategory {
+  id       String  @id @default(uuid())
+  name     String
+  parentId String? @map("parent_id")
+
+  parent   ProductCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children ProductCategory[] @relation("CategoryHierarchy")
+  products Product[]
+
+  @@map("product_categories")
+}
+
+model UnitOfMeasure {
+  id        String    @id @default(uuid())
+  name      String
+  shortCode String    @unique @map("short_code")
+  products  Product[]
+
+  @@map("units_of_measure")
+}
+
+model Product {
+  id         String   @id @default(uuid())
+  name       String
+  sku        String   @unique
+  categoryId String   @map("category_id")
+  uomId      String   @map("uom_id")
+  reorderMin Int      @default(0) @map("reorder_min")
+  reorderMax Int      @default(0) @map("reorder_max")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  category ProductCategory @relation(fields: [categoryId], references: [id])
+  uom      UnitOfMeasure   @relation(fields: [uomId], references: [id])
+
+  quants    StockQuant[]
+  moveLines StockMoveLine[]
+
+  @@index([categoryId])
+  @@map("products")
+}
+
+model StockQuant {
+  id         String @id @default(uuid())
+  productId  String @map("product_id")
+  locationId String @map("location_id")
+  quantity   Int    @default(0)
+
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, locationId])
+  @@index([locationId])
+  @@map("stock_quants")
+}
+
+model ReferenceSequence {
+  id          String      @id @default(uuid())
+  warehouseId String      @map("warehouse_id")
+  pickingType PickingType @map("picking_type")
+  nextNumber  Int         @default(1) @map("next_number")
+
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+
+  @@unique([warehouseId, pickingType])
+  @@map("reference_sequences")
+}
+
+model Picking {
+  id                String        @id @default(uuid())
+  reference         String        @unique
+  warehouseId       String        @map("warehouse_id")
+  pickingType       PickingType   @map("picking_type")
+  partnerName       String?       @map("partner_name")
+  sourceLocationId  String        @map("source_location_id")
+  destLocationId    String        @map("dest_location_id")
+  status            PickingStatus @default(DRAFT)
+  scheduledDate     DateTime      @map("scheduled_date")
+  doneDate          DateTime?     @map("done_date")
+  responsibleUserId String?       @map("responsible_user_id")
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+
+  warehouse       Warehouse @relation(fields: [warehouseId], references: [id])
+  sourceLocation  Location  @relation("PickingSource", fields: [sourceLocationId], references: [id])
+  destLocation    Location  @relation("PickingDest", fields: [destLocationId], references: [id])
+  responsibleUser User?     @relation("PickingResponsible", fields: [responsibleUserId], references: [id])
+
+  lines StockMoveLine[]
+
+  @@index([status, pickingType, warehouseId])
+  @@map("pickings")
+}
+
+model StockMoveLine {
+  id               String        @id @default(uuid())
+  pickingId        String        @map("picking_id")
+  productId        String        @map("product_id")
+  quantity         Int
+  sourceLocationId String        @map("source_location_id")
+  destLocationId   String        @map("dest_location_id")
+  status           PickingStatus @default(DRAFT)
+  createdAt        DateTime      @default(now()) @map("created_at")
+  doneAt           DateTime?     @map("done_at")
+
+  picking        Picking  @relation(fields: [pickingId], references: [id], onDelete: Cascade)
+  product        Product  @relation(fields: [productId], references: [id])
+  sourceLocation Location @relation("MoveLineSource", fields: [sourceLocationId], references: [id])
+  destLocation   Location @relation("MoveLineDest", fields: [destLocationId], references: [id])
+
+  @@index([productId, createdAt])
+  @@index([pickingId])
+  @@map("stock_move_lines")
+}
