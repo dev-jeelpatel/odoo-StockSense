@@ -13,6 +13,7 @@ import { productsRouter } from "./modules/products/products.routes";
 import { pickingsRouter } from "./modules/pickings/pickings.routes";
 import { movesRouter } from "./modules/moves/moves.routes";
 import { stockRouter } from "./modules/stock/stock.routes";
+import { dashboardRouter } from "./modules/dashboard/dashboard.routes";
 
 export const app = express();
 
@@ -32,6 +33,7 @@ app.use("/api/products", productsRouter);
 app.use("/api/pickings", pickingsRouter);
 app.use("/api/moves", movesRouter);
 app.use("/api/stock", stockRouter);
+app.use("/api/dashboard", dashboardRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
