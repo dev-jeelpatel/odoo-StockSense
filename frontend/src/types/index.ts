@@ -51,6 +51,7 @@ export interface Product {
   sku: string;
   categoryId: string;
   uomId: string;
+  costPerUnit: number;
   reorderMin: number;
   reorderMax: number;
   createdAt: string;
@@ -105,7 +106,7 @@ export interface StockQuant {
   productId: string;
   locationId: string;
   quantity: number;
-  product: { id: string; name: string; sku: string; uom: { shortCode: string } };
+  product: { id: string; name: string; sku: string; costPerUnit: number; uom: { shortCode: string } };
   location: { id: string; name: string; warehouse: { id: string; name: string; shortCode: string } | null };
 }
 

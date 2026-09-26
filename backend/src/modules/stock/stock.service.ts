@@ -10,7 +10,9 @@ export function listQuants(filters: ListQuantsQuery) {
       location: filters.warehouseId ? { warehouseId: filters.warehouseId } : undefined,
     },
     include: {
-      product: { select: { id: true, name: true, sku: true, uom: { select: { shortCode: true } } } },
+      product: {
+        select: { id: true, name: true, sku: true, costPerUnit: true, uom: { select: { shortCode: true } } },
+      },
       location: {
         select: { id: true, name: true, warehouse: { select: { id: true, name: true, shortCode: true } } },
       },

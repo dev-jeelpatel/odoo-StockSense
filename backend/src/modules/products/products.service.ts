@@ -78,6 +78,7 @@ export async function createProduct(input: CreateProductInput) {
         sku: input.sku,
         categoryId: input.categoryId,
         uomId: input.uomId,
+        costPerUnit: input.costPerUnit,
         reorderMin: input.reorderMin,
         reorderMax: input.reorderMax,
       },

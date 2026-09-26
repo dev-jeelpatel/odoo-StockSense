@@ -25,6 +25,7 @@ const productFormSchema = z.object({
   sku: z.string().trim().min(1, "SKU is required"),
   categoryId: z.string().min(1, "Select a category"),
   uomId: z.string().min(1, "Select a unit"),
+  costPerUnit: z.coerce.number().int().min(0),
   reorderMin: z.coerce.number().int().min(0),
   reorderMax: z.coerce.number().int().min(0),
   initialLocationId: z.string().optional(),
@@ -46,6 +47,7 @@ export function ProductFormDialog({ open, onOpenChange }: { open: boolean; onOpe
       sku: "",
       categoryId: "",
       uomId: "",
+      costPerUnit: 0,
       reorderMin: 0,
       reorderMax: 0,
       initialLocationId: "",
@@ -63,6 +65,7 @@ export function ProductFormDialog({ open, onOpenChange }: { open: boolean; onOpe
       sku: values.sku,
       categoryId: values.categoryId,
       uomId: values.uomId,
+      costPerUnit: values.costPerUnit,
       reorderMin: values.reorderMin,
       reorderMax: values.reorderMax,
     };
@@ -161,6 +164,19 @@ export function ProductFormDialog({ open, onOpenChange }: { open: boolean; onOpe
                         ))}
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="costPerUnit"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cost per unit</FormLabel>
+                    <FormControl>
+                      <Input type="number" min={0} step="1" {...field} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

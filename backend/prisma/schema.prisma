@@ -123,15 +123,16 @@ model UnitOfMeasure {
 }
 
 model Product {
-  id         String   @id @default(uuid())
-  name       String
-  sku        String   @unique
-  categoryId String   @map("category_id")
-  uomId      String   @map("uom_id")
-  reorderMin Int      @default(0) @map("reorder_min")
-  reorderMax Int      @default(0) @map("reorder_max")
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+  id          String   @id @default(uuid())
+  name        String
+  sku         String   @unique
+  categoryId  String   @map("category_id")
+  uomId       String   @map("uom_id")
+  costPerUnit Int      @default(0) @map("cost_per_unit")
+  reorderMin  Int      @default(0) @map("reorder_min")
+  reorderMax  Int      @default(0) @map("reorder_max")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   category ProductCategory @relation(fields: [categoryId], references: [id])
   uom      UnitOfMeasure   @relation(fields: [uomId], references: [id])

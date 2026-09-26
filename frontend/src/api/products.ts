@@ -7,6 +7,7 @@ export interface CreateProductInput {
   sku: string;
   categoryId: string;
   uomId: string;
+  costPerUnit: number;
   reorderMin: number;
   reorderMax: number;
   initialStock?: { locationId: string; quantity: number };
@@ -16,6 +17,7 @@ export interface UpdateProductInput {
   name?: string;
   categoryId?: string;
   uomId?: string;
+  costPerUnit?: number;
   reorderMin?: number;
   reorderMax?: number;
 }

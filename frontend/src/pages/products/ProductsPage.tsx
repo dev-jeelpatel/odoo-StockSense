@@ -85,6 +85,7 @@ export function ProductsPage() {
               <TableHead>SKU</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>UOM</TableHead>
+              <TableHead className="text-right">Cost/unit</TableHead>
               <TableHead className="text-right">On hand</TableHead>
               <TableHead className="text-right">Reorder min/max</TableHead>
               <TableHead className="w-24" />
@@ -93,14 +94,14 @@ export function ProductsPage() {
           <TableBody>
             {isLoading && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground">
+                <TableCell colSpan={8} className="text-center text-muted-foreground">
                   Loading...
                 </TableCell>
               </TableRow>
             )}
             {!isLoading && products?.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground">
+                <TableCell colSpan={8} className="text-center text-muted-foreground">
                   No products found.
                 </TableCell>
               </TableRow>
@@ -114,6 +115,9 @@ export function ProductsPage() {
                   <TableCell className="text-muted-foreground">{product.sku}</TableCell>
                   <TableCell>{product.category.name}</TableCell>
                   <TableCell>{product.uom.shortCode}</TableCell>
+                  <TableCell className="text-right text-muted-foreground">
+                    ₹{product.costPerUnit.toLocaleString()}
+                  </TableCell>
                   <TableCell className="text-right">
                     <Badge variant={isLow ? "destructive" : "secondary"}>
                       {onHand} {product.uom.shortCode}

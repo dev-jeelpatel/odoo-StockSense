@@ -36,6 +36,7 @@ export function StockPage() {
             <TableRow>
               <TableHead>Product</TableHead>
               <TableHead>SKU</TableHead>
+              <TableHead className="text-right">Per unit cost</TableHead>
               <TableHead>Warehouse</TableHead>
               <TableHead>Location</TableHead>
               <TableHead className="text-right">Quantity</TableHead>
@@ -44,14 +45,14 @@ export function StockPage() {
           <TableBody>
             {isLoading && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground">
+                <TableCell colSpan={6} className="text-center text-muted-foreground">
                   Loading...
                 </TableCell>
               </TableRow>
             )}
             {!isLoading && quants?.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground">
+                <TableCell colSpan={6} className="text-center text-muted-foreground">
                   No stock recorded yet.
                 </TableCell>
               </TableRow>
@@ -60,6 +61,9 @@ export function StockPage() {
               <TableRow key={q.id}>
                 <TableCell className="font-medium">{q.product.name}</TableCell>
                 <TableCell className="text-muted-foreground">{q.product.sku}</TableCell>
+                <TableCell className="text-right text-muted-foreground">
+                  ₹{q.product.costPerUnit.toLocaleString()}
+                </TableCell>
                 <TableCell>{q.location.warehouse?.name ?? "—"}</TableCell>
                 <TableCell>{q.location.name}</TableCell>
                 <TableCell className="text-right">
