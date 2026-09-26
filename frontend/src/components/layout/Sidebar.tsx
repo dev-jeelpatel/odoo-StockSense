@@ -1,15 +1,37 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   ArrowLeftRight,
+  ChevronsUpDown,
   ClipboardList,
   LayoutDashboard,
+  LogOut,
   Package,
   PackageCheck,
   PackageSearch,
   Settings,
   SlidersHorizontal,
   Truck,
+  User,
 } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/store/auth-context";
+
+function initials(name: string) {
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
 
 const navSections = [
   {
@@ -79,6 +101,14 @@ const SIDEBAR_STYLE = `
 `;
 
 export function Sidebar() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  function handleLogout() {
+    logout();
+    navigate("/login", { replace: true });
+  }
+
   return (
     <>
       <style>{SIDEBAR_STYLE}</style>
@@ -165,44 +195,78 @@ export function Sidebar() {
           ))}
         </nav>
 
-        {/* ── Footer ── */}
-        <div
-          className="px-3 py-3"
-          style={{ borderTop: "1px solid var(--sidebar-border)" }}
-        >
-          <div className="flex items-center gap-2">
-            <div
-              className="flex size-6 items-center justify-center rounded-full text-white"
-              style={{
-                background: "linear-gradient(135deg, oklch(0.62 0.28 270), oklch(0.48 0.26 300))",
-                fontSize: "0.5rem",
-                fontWeight: 800,
-              }}
-            >
-              SS
-            </div>
-            <div className="flex flex-col leading-none">
-              <span
-                style={{
-                  fontSize: "0.625rem",
-                  fontWeight: 600,
-                  color: "var(--sidebar-fg)",
-                  opacity: 0.7,
-                }}
-              >
-                StockSense IMS
-              </span>
-              <span
-                style={{
-                  fontSize: "0.5625rem",
-                  color: "var(--sidebar-muted)",
-                }}
-              >
-                Odoo Hackathon
-              </span>
-            </div>
+        {/* ── User Profile Footer ── */}
+        {user && (
+          <div
+            className="p-2"
+            style={{ borderTop: "1px solid var(--sidebar-border)" }}
+          >
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-accent outline-none cursor-pointer"
+                  style={{ color: "var(--sidebar-fg)" }}
+                >
+                  <Avatar className="size-8 shrink-0">
+                    <AvatarFallback
+                      className="text-xs font-semibold text-white"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, oklch(0.62 0.28 270), oklch(0.48 0.26 300))",
+                      }}
+                    >
+                      {initials(user.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-1 min-w-0 flex-col leading-tight">
+                    <span className="truncate text-xs font-semibold">
+                      {user.name}
+                    </span>
+                    <span
+                      className="truncate text-[11px]"
+                      style={{ color: "var(--sidebar-muted)" }}
+                    >
+                      {user.email}
+                    </span>
+                  </div>
+                  <ChevronsUpDown className="size-3.5 shrink-0 opacity-50" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent side="top" align="start" sideOffset={8} className="w-56">
+                <DropdownMenuLabel>
+                  <p className="font-semibold text-sm">{user.name}</p>
+                  <p className="text-xs font-normal text-muted-foreground truncate">
+                    {user.email}
+                  </p>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => navigate("/profile")}
+                  className="cursor-pointer"
+                >
+                  <User className="size-4 mr-2" />
+                  My Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => navigate("/settings/warehouses")}
+                  className="cursor-pointer"
+                >
+                  <Settings className="size-4 mr-2" />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  variant="destructive"
+                  className="cursor-pointer text-destructive focus:text-destructive"
+                >
+                  <LogOut className="size-4 mr-2" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-        </div>
+        )}
       </aside>
     </>
   );
