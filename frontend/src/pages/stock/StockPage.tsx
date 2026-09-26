@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { PackageSearch, Search } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useWarehouses } from "@/api/warehouses";
@@ -7,8 +9,21 @@ import { useStockQuants } from "@/api/stock";
 
 export function StockPage() {
   const [warehouseId, setWarehouseId] = useState<string>("");
+  const [search, setSearch] = useState("");
   const { data: warehouses } = useWarehouses();
   const { data: quants, isLoading } = useStockQuants({ warehouseId: warehouseId || undefined });
+
+  const filtered = useMemo(() => {
+    if (!quants) return quants;
+    const q = search.trim().toLowerCase();
+    if (!q) return quants;
+    return quants.filter((r) => r.product.name.toLowerCase().includes(q) || r.product.sku.toLowerCase().includes(q));
+  }, [quants, search]);
+
+  const totalValue = useMemo(
+    () => filtered?.reduce((sum, q) => sum + q.quantity * q.product.costPerUnit, 0) ?? 0,
+    [filtered]
+  );
 
   return (
     <div className="flex h-full flex-col">
@@ -18,6 +33,10 @@ export function StockPage() {
         className="flex items-center gap-3 px-6 py-3"
         style={{ borderBottom: "1px solid var(--border)", background: "var(--card)" }}
       >
+        <div className="relative w-64">
+          <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
+          <Input placeholder="Search product or SKU" className="pl-8" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
         <Select value={warehouseId || "all"} onValueChange={(v) => setWarehouseId(v === "all" ? "" : v)}>
           <SelectTrigger className="w-52 h-8 text-sm">
             <SelectValue placeholder="All warehouses" />
@@ -31,9 +50,9 @@ export function StockPage() {
             ))}
           </SelectContent>
         </Select>
-        {quants && (
+        {filtered && (
           <span className="ml-auto text-xs text-muted-foreground">
-            {quants.length} record{quants.length !== 1 ? "s" : ""}
+            {filtered.length} record{filtered.length !== 1 ? "s" : ""} · ₹{totalValue.toLocaleString()} total value
           </span>
         )}
       </div>
@@ -62,14 +81,17 @@ export function StockPage() {
                   </TableCell>
                 </TableRow>
               )}
-              {!isLoading && quants?.length === 0 && (
+              {!isLoading && filtered?.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center text-muted-foreground py-12">
-                    No stock recorded yet.
+                    <div className="flex flex-col items-center gap-2">
+                      <PackageSearch className="size-8 text-muted-foreground/40" />
+                      {search ? `No stock matches "${search}".` : "No stock recorded yet."}
+                    </div>
                   </TableCell>
                 </TableRow>
               )}
-              {quants?.map((q) => (
+              {filtered?.map((q) => (
                 <TableRow key={q.id} className="transition-colors hover:bg-primary/[0.02]">
                   <TableCell className="font-medium">{q.product.name}</TableCell>
                   <TableCell>

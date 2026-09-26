@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LayoutGrid, List, Plus, Search } from "lucide-react";
+import { Inbox, LayoutGrid, List, Plus, Search } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -128,6 +128,12 @@ export function PickingListPage({ pickingType }: { pickingType: Exclude<PickingT
           </Select>
         )}
 
+        {pickings && (
+          <span className="text-xs text-muted-foreground">
+            {pickings.length} record{pickings.length !== 1 ? "s" : ""}
+          </span>
+        )}
+
         <div className="ml-auto flex items-center gap-1 rounded-md border p-0.5">
           <Button
             variant={view === "list" ? "secondary" : "ghost"}
@@ -174,7 +180,10 @@ export function PickingListPage({ pickingType }: { pickingType: Exclude<PickingT
                 {!isLoading && pickings?.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={4} className="text-center text-muted-foreground py-12">
-                      No documents found.
+                      <div className="flex flex-col items-center gap-2">
+                        <Inbox className="size-8 text-muted-foreground/40" />
+                        {search ? `No documents match "${search}".` : "No documents found."}
+                      </div>
                     </TableCell>
                   </TableRow>
                 )}
@@ -226,7 +235,10 @@ export function PickingListPage({ pickingType }: { pickingType: Exclude<PickingT
                     style={{ background: "var(--muted)", border: "1px solid var(--border)" }}
                   >
                     {items.length === 0 && (
-                      <p className="p-3 text-center text-xs text-muted-foreground">No documents</p>
+                      <div className="flex flex-col items-center gap-1.5 p-4 text-center">
+                        <Inbox className="size-5 text-muted-foreground/30" />
+                        <p className="text-xs text-muted-foreground">No documents</p>
+                      </div>
                     )}
                     {items.map((p) => (
                       <PickingCard
