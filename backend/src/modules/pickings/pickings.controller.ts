@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { PickingStatus, PickingType } from "@prisma/client";
+import type { AuthenticatedRequest } from "../../middleware/jwtAuth";
 import * as pickingsService from "./pickings.service";
 
 export async function listHandler(req: Request, res: Response) {
@@ -17,8 +18,9 @@ export async function getHandler(req: Request, res: Response) {
   res.json(await pickingsService.getPicking(req.params.id));
 }
 
-export async function createHandler(req: Request, res: Response) {
-  res.status(201).json(await pickingsService.createPicking(req.body));
+export async function createHandler(req: AuthenticatedRequest, res: Response) {
+  const input = { ...req.body, responsibleUserId: req.body.responsibleUserId ?? req.user!.id };
+  res.status(201).json(await pickingsService.createPicking(input));
 }
 
 export async function updateHandler(req: Request, res: Response) {

@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Printer } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -77,11 +77,17 @@ export function PickingDetailPage() {
         title={picking.reference}
         description={picking.partnerName ?? `${picking.sourceLocation.name} → ${picking.destLocation.name}`}
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 print:hidden">
             <Button variant="ghost" size="sm" onClick={() => navigate(backPath)}>
               <ArrowLeft className="size-4" />
               Back
             </Button>
+            {picking.status === "DONE" && (
+              <Button variant="outline" onClick={() => window.print()}>
+                <Printer className="size-4" />
+                Print
+              </Button>
+            )}
             {canCancel && (
               <Button variant="outline" onClick={handleCancel} disabled={cancel.isPending}>
                 Cancel
@@ -101,7 +107,7 @@ export function PickingDetailPage() {
         }
       />
 
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto p-6 print:overflow-visible">
         <Card className="mb-4">
           <CardContent className="grid grid-cols-2 gap-4 pt-6 sm:grid-cols-4">
             <div>
