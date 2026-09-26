@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { usePickings } from "@/api/pickings";
 import type { Picking, PickingType } from "@/types";
 
@@ -47,18 +48,54 @@ export function CalendarPage() {
 
   const overdue = pickings.filter((p) => p.isLate && p.status !== "DONE" && p.status !== "CANCELLED");
 
+  const weekRows = cells.length / 7;
+
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col overflow-hidden">
       <PageHeader title="Schedule Calendar" description="View upcoming pickings by scheduled date." />
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="mb-4 flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-1">
-            <Button size="icon" variant="outline" className="size-8" onClick={prevMonth}><ChevronLeft className="size-4" /></Button>
-            <span className="min-w-[160px] text-center text-sm font-semibold">{MONTHS[month]} {year}</span>
-            <Button size="icon" variant="outline" className="size-8" onClick={nextMonth}><ChevronRight className="size-4" /></Button>
+      <div className="flex flex-1 min-h-0 flex-col gap-3 p-6">
+        <div className="flex items-center gap-3 flex-wrap shrink-0 rounded-xl border bg-card px-4 py-2.5">
+          <div className="flex items-center gap-1 rounded-lg border p-0.5">
+            <Button size="icon" variant="ghost" className="size-7" onClick={prevMonth}><ChevronLeft className="size-4" /></Button>
+            <span className="min-w-[150px] text-center text-sm font-semibold">{MONTHS[month]} {year}</span>
+            <Button size="icon" variant="ghost" className="size-7" onClick={nextMonth}><ChevronRight className="size-4" /></Button>
           </div>
           <Button size="sm" variant="outline" onClick={() => { setMonth(today.getMonth()); setYear(today.getFullYear()); }}>Today</Button>
-          <div className="ml-auto">
+
+          <div className="flex flex-wrap items-center gap-1.5 ml-1">
+            {(Object.entries(TYPE_COLORS) as [PickingType, typeof TYPE_COLORS[PickingType]][]).map(([type, { bg, color, label }]) => (
+              <span
+                key={type}
+                className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
+                style={{ background: bg, color }}
+              >
+                <span className="size-1.5 rounded-full inline-block" style={{ background: color }} />
+                {label}
+              </span>
+            ))}
+          </div>
+
+          <div className="ml-auto flex items-center gap-2">
+            {overdue.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="sm" variant="outline" className="gap-1.5" style={{ color: "oklch(0.5 0.245 27)", borderColor: "oklch(0.577 0.245 27 / 30%)", background: "oklch(0.577 0.245 27 / 6%)" }}>
+                    <Clock className="size-3.5" /> {overdue.length} overdue
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-72 p-2">
+                  <p className="px-1 pb-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Overdue pickings</p>
+                  <div className="space-y-0.5">
+                    {overdue.slice(0, 8).map((p) => (
+                      <button key={p.id} onClick={() => navigate(`${PICKING_PATHS[p.pickingType]}/${p.id}`)} className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-xs hover:bg-muted cursor-pointer">
+                        <span className="font-mono font-medium">{p.reference}</span>
+                        <span className="text-muted-foreground">due {new Date(p.scheduledDate).toLocaleDateString()}</span>
+                      </button>
+                    ))}
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
             <Select value={filterType} onValueChange={(v) => setFilterType(v as PickingType | "ALL")}>
               <SelectTrigger className="w-44 h-8 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -70,52 +107,73 @@ export function CalendarPage() {
             </Select>
           </div>
         </div>
-        <div className="mb-3 flex flex-wrap gap-3">
-          {(Object.entries(TYPE_COLORS) as [PickingType, typeof TYPE_COLORS[PickingType]][]).map(([type, { color, label }]) => (
-            <div key={type} className="flex items-center gap-1.5"><span className="size-2.5 rounded-sm inline-block" style={{ background: color }} /><span className="text-xs text-muted-foreground">{label}</span></div>
-          ))}
-        </div>
-        <div className="rounded-xl border bg-card overflow-hidden">
-          <div className="grid grid-cols-7 border-b">
-            {DAYS.map((d) => <div key={d} className="py-2 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wide">{d}</div>)}
+
+        <div
+          className="flex flex-1 min-h-0 flex-col rounded-2xl border bg-card overflow-hidden p-3"
+          style={{ boxShadow: "0 4px 20px oklch(0 0 0 / 5%), 0 1px 3px oklch(0 0 0 / 4%)" }}
+        >
+          <div className="grid grid-cols-7 shrink-0 pb-2">
+            {DAYS.map((d, i) => (
+              <div
+                key={d}
+                className="text-center text-[0.8rem] font-semibold"
+                style={{ color: i === 0 || i === 6 ? "var(--primary)" : "var(--foreground)", opacity: i === 0 || i === 6 ? 0.85 : 0.6 }}
+              >
+                {d}
+              </div>
+            ))}
           </div>
-          <div className="grid grid-cols-7">
+          <div
+            className="grid flex-1 min-h-0 grid-cols-7 gap-1"
+            style={{ gridTemplateRows: `repeat(${weekRows}, minmax(0, 1fr))` }}
+          >
             {cells.map((day, idx) => {
-              if (!day) return <div key={idx} className="border-b border-r min-h-[90px] bg-muted/20" />;
+              if (!day) return <div key={idx} className="rounded-lg" style={{ background: "var(--muted)", opacity: 0.35 }} />;
               const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
               const dayPickings = byDate[dateKey] ?? [];
               const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
-              const isWeekend = (firstDay + day - 1) % 7 === 0 || (firstDay + day - 1) % 7 === 6;
               return (
-                <div key={idx} className="border-b border-r min-h-[90px] p-1.5 transition-colors" style={{ background: isWeekend ? "var(--muted)" : undefined }}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className={`text-xs font-semibold flex size-6 items-center justify-center rounded-full ${isToday ? "text-white" : "text-foreground/70"}`} style={isToday ? { background: "var(--primary)" } : {}}>{day}</span>
-                    {dayPickings.length > 0 && <span className="text-[10px] text-muted-foreground">{dayPickings.length}</span>}
+                <div
+                  key={idx}
+                  className="group flex min-h-0 flex-col rounded-lg p-1.5 transition-colors hover:bg-muted/60"
+                  style={{ border: "1px solid var(--border)" }}
+                >
+                  <div className="flex items-center justify-between mb-1 shrink-0">
+                    <span
+                      className={`text-xs flex size-6 items-center justify-center rounded-full ${isToday ? "font-bold text-white" : "font-medium text-foreground/70"}`}
+                      style={isToday ? { background: "var(--primary)", boxShadow: "0 2px 8px oklch(0.52 0.26 270 / 45%)" } : {}}
+                    >
+                      {day}
+                    </span>
+                    {dayPickings.length > 0 && (
+                      <span className="text-[10px] font-medium text-muted-foreground/70 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {dayPickings.length} event{dayPickings.length !== 1 ? "s" : ""}
+                      </span>
+                    )}
                   </div>
-                  <div className="space-y-0.5">
+                  <div className="space-y-1 min-h-0 overflow-y-auto">
                     {dayPickings.slice(0, 3).map((p) => {
                       const { bg, color } = TYPE_COLORS[p.pickingType];
-                      return <button key={p.id} onClick={() => navigate(`${PICKING_PATHS[p.pickingType]}/${p.id}`)} className="w-full text-left rounded px-1 py-0.5 truncate cursor-pointer hover:opacity-80 transition-opacity" style={{ background: bg, color }} title={p.reference}><span className="text-[10px] font-medium">{p.reference}</span></button>;
+                      return (
+                        <button
+                          key={p.id}
+                          onClick={() => navigate(`${PICKING_PATHS[p.pickingType]}/${p.id}`)}
+                          className="flex w-full items-center gap-1.5 text-left rounded-full px-2 py-1 truncate cursor-pointer transition-all hover:shadow-sm hover:-translate-y-px"
+                          style={{ background: bg, color }}
+                          title={p.reference}
+                        >
+                          {p.isLate && <span className="size-1.5 shrink-0 rounded-full" style={{ background: "oklch(0.577 0.245 27)" }} />}
+                          <span className="text-[10px] font-semibold truncate">{p.reference}</span>
+                        </button>
+                      );
                     })}
-                    {dayPickings.length > 3 && <p className="text-[10px] text-muted-foreground pl-1">+{dayPickings.length - 3} more</p>}
+                    {dayPickings.length > 3 && <p className="text-[10px] text-muted-foreground pl-2">+{dayPickings.length - 3} more</p>}
                   </div>
                 </div>
               );
             })}
           </div>
         </div>
-        {overdue.length > 0 && (
-          <div className="mt-4 rounded-xl border p-4" style={{ background: "oklch(0.577 0.245 27 / 6%)", borderColor: "oklch(0.577 0.245 27 / 20%)" }}>
-            <div className="flex items-center gap-2 mb-2"><Clock className="size-4" style={{ color: "oklch(0.577 0.245 27)" }} /><p className="text-sm font-semibold" style={{ color: "oklch(0.5 0.245 27)" }}>{overdue.length} overdue picking(s)</p></div>
-            <div className="space-y-1">
-              {overdue.slice(0, 5).map((p) => (
-                <button key={p.id} onClick={() => navigate(`${PICKING_PATHS[p.pickingType]}/${p.id}`)} className="flex w-full items-center gap-2 text-xs text-left hover:underline cursor-pointer" style={{ color: "oklch(0.5 0.245 27)" }}>
-                  <span className="font-mono font-medium">{p.reference}</span><span className="text-muted-foreground">due {new Date(p.scheduledDate).toLocaleDateString()}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
