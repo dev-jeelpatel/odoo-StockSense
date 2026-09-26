@@ -29,6 +29,32 @@ A full-stack inventory management system — receipts, deliveries, internal tran
 - **Stock & Move History** — live on-hand quantities per location, and a full ledger of every stock movement
 - **Settings** — warehouses, locations, categories, and team member management with role-based access (Manager/Staff)
 
+## Screenshots
+
+| Login | Dashboard |
+|---|---|
+| ![Login](docs/screenshots/login.webp) | ![Dashboard](docs/screenshots/dashboard.png) |
+
+| Products | Import / Export |
+|---|---|
+| ![Products](docs/screenshots/products.png) | ![Import / Export](docs/screenshots/import-export.png) |
+
+| Barcode / QR Scanner | Receipts |
+|---|---|
+| ![Barcode Scanner](docs/screenshots/barcode-scanner.png) | ![Receipts](docs/screenshots/receipts.png) |
+
+| Delivery (Kanban) | Internal Transfers |
+|---|---|
+| ![Delivery Kanban](docs/screenshots/delivery-kanban.png) | ![Internal Transfers](docs/screenshots/internal-transfers.png) |
+
+| Schedule Calendar | Warehouses |
+|---|---|
+| ![Schedule Calendar](docs/screenshots/schedule-calendar.png) | ![Warehouses](docs/screenshots/warehouses.png) |
+
+| Locations |
+|---|
+| ![Locations](docs/screenshots/locations.png) |
+
 ## Project Structure
 
 ```
