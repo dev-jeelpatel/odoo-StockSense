@@ -40,6 +40,9 @@ export function useCreateLocation() {
   return useMutation({
     mutationFn: async (input: { warehouseId: string; name: string; shortCode: string; parentLocationId?: string }) =>
       (await apiClient.post<Location>("/locations", input)).data,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["locations"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["locations"] });
+      queryClient.invalidateQueries({ queryKey: ["warehouses"] });
+    },
   });
 }
