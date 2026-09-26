@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { Upload, Download, FileText, CheckCircle2, AlertTriangle, X, ChevronRight } from "lucide-react";
+import { useState, useRef, useCallback } from "react";
+import { Upload, Download, FileText, CheckCircle2, AlertTriangle, X, ChevronRight, FileSpreadsheet } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { apiClient, getApiErrorMessage } from "@/lib/api-client";
 import { useProducts } from "@/api/products";
+import { cn } from "@/lib/utils";
 import type { Product } from "@/types";
 
 const CSV_HEADERS = "name,sku,categoryName,uomShortCode,costPerUnit,reorderMin,reorderMax";
@@ -41,10 +42,9 @@ export function ImportExportPage() {
   const [result, setResult] = useState<ImportResult | null>(null);
   const [preview, setPreview] = useState<Record<string, string>[] | null>(null);
   const [fileName, setFileName] = useState("");
+  const [dragOver, setDragOver] = useState(false);
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  function loadFile(file: File) {
     setFileName(file.name); setResult(null);
     const reader = new FileReader();
     reader.onload = (ev) => {
@@ -53,6 +53,25 @@ export function ImportExportPage() {
     };
     reader.readAsText(file);
   }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) loadFile(file);
+  }
+
+  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith(".csv")) { toast.error("Please drop a .csv file"); return; }
+    if (fileRef.current) {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      fileRef.current.files = dt.files;
+    }
+    loadFile(file);
+  }, []);
 
   async function handleImport() {
     const file = fileRef.current?.files?.[0];
@@ -81,24 +100,50 @@ export function ImportExportPage() {
       <div className="flex-1 overflow-y-auto p-6">
         <div className="mx-auto max-w-2xl space-y-6">
           <Card>
-            <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2 text-sm font-semibold"><Download className="size-4" /> Export Products</CardTitle></CardHeader>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+                <div className="flex size-8 items-center justify-center rounded-lg" style={{ background: "oklch(0.58 0.18 145 / 12%)" }}>
+                  <Download className="size-4" style={{ color: "oklch(0.45 0.18 145)" }} />
+                </div>
+                Export Products
+              </CardTitle>
+            </CardHeader>
             <CardContent className="space-y-3">
-              <p className="text-sm text-muted-foreground">Download all <strong>{products.length}</strong> products as a CSV file.</p>
+              <p className="text-sm text-muted-foreground">Download all <strong className="text-foreground">{products.length}</strong> products as a CSV file.</p>
               <Button variant="outline" size="sm" onClick={() => exportToCsv(products)} disabled={products.length === 0}><Download className="size-3.5 mr-1.5" /> Download CSV</Button>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2 text-sm font-semibold"><Upload className="size-4" /> Import Products</CardTitle></CardHeader>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+                <div className="flex size-8 items-center justify-center rounded-lg" style={{ background: "oklch(0.62 0.28 270 / 12%)" }}>
+                  <Upload className="size-4" style={{ color: "oklch(0.52 0.26 270)" }} />
+                </div>
+                Import Products
+              </CardTitle>
+            </CardHeader>
             <CardContent className="space-y-4">
               <div className="text-sm text-muted-foreground space-y-1">
                 <p>Upload a CSV file with these columns:</p>
                 <code className="block rounded bg-muted px-3 py-2 text-xs font-mono">{CSV_HEADERS}</code>
               </div>
-              <div className="flex items-center gap-3">
-                <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}><FileText className="size-3.5 mr-1.5" /> Choose CSV file</Button>
-                <Button variant="ghost" size="sm" onClick={downloadTemplate}>Download template</Button>
+
+              <div
+                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={handleDrop}
+                onClick={() => fileRef.current?.click()}
+                className={cn(
+                  "flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-6 text-center cursor-pointer transition-colors",
+                  dragOver ? "border-primary bg-primary/5" : "border-border hover:bg-muted/40"
+                )}
+              >
+                <FileSpreadsheet className="size-7 text-muted-foreground/60" />
+                <p className="text-sm font-medium">Drop a CSV file here, or click to browse</p>
+                <p className="text-xs text-muted-foreground">or <button type="button" onClick={(e) => { e.stopPropagation(); downloadTemplate(); }} className="text-primary hover:underline">download the template</button></p>
               </div>
               <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={handleFileChange} />
+
               {fileName && (
                 <div className="flex items-center gap-2 rounded-lg border bg-muted/50 px-3 py-2 text-sm">
                   <FileText className="size-4 text-muted-foreground" /><span className="flex-1 truncate">{fileName}</span>
