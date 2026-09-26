@@ -4,8 +4,15 @@ import { env } from "../../config/env";
 import { AppError } from "../../utils/AppError";
 import { generateOtp, hashOtp, compareOtp } from "../../utils/otp";
 import { sendOtpEmail } from "../../utils/mailer";
-import { signAccessToken, signRefreshToken } from "../../utils/tokens";
-import type { ForgotPasswordInput, LoginInput, ResetPasswordInput, SignupInput, VerifyOtpInput } from "./auth.schemas";
+import { signAccessToken, signRefreshToken, verifyRefreshToken } from "../../utils/tokens";
+import type {
+  ForgotPasswordInput,
+  LoginInput,
+  RefreshInput,
+  ResetPasswordInput,
+  SignupInput,
+  VerifyOtpInput,
+} from "./auth.schemas";
 
 function toPublicUser(user: { id: string; name: string; email: string; role: string }) {
   return { id: user.id, name: user.name, email: user.email, role: user.role };
@@ -37,6 +44,23 @@ export async function login(input: LoginInput) {
   }
 
   return issueSession(user);
+}
+
+export async function refresh(input: RefreshInput) {
+  let payload: { sub: string };
+  try {
+    payload = verifyRefreshToken(input.refreshToken);
+  } catch {
+    throw AppError.unauthorized("Invalid or expired refresh token");
+  }
+
+  const user = await prisma.user.findUnique({ where: { id: payload.sub } });
+  if (!user) {
+    throw AppError.unauthorized("Invalid or expired refresh token");
+  }
+
+  const accessToken = signAccessToken({ sub: user.id, email: user.email, role: user.role });
+  return { accessToken };
 }
 
 export async function forgotPassword(input: ForgotPasswordInput) {

@@ -4,6 +4,7 @@ import { asyncHandler } from "../../utils/asyncHandler";
 import {
   forgotPasswordSchema,
   loginSchema,
+  refreshSchema,
   resetPasswordSchema,
   signupSchema,
   verifyOtpSchema,
@@ -11,6 +12,7 @@ import {
 import {
   forgotPasswordHandler,
   loginHandler,
+  refreshHandler,
   resetPasswordHandler,
   signupHandler,
   verifyOtpHandler,
@@ -20,6 +22,7 @@ export const authRouter = Router();
 
 authRouter.post("/signup", validateRequest({ body: signupSchema }), asyncHandler(signupHandler));
 authRouter.post("/login", validateRequest({ body: loginSchema }), asyncHandler(loginHandler));
+authRouter.post("/refresh", validateRequest({ body: refreshSchema }), asyncHandler(refreshHandler));
 authRouter.post(
   "/forgot-password",
   validateRequest({ body: forgotPasswordSchema }),
