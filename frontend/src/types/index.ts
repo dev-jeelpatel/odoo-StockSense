@@ -106,7 +106,7 @@ export interface StockQuant {
   locationId: string;
   quantity: number;
   product: { id: string; name: string; sku: string; uom: { shortCode: string } };
-  location: { id: string; name: string; warehouse: { id: string; name: string; shortCode: string } };
+  location: { id: string; name: string; warehouse: { id: string; name: string; shortCode: string } | null };
 }
 
 export interface MoveLedgerEntry extends StockMoveLine {
