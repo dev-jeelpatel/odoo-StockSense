@@ -266,11 +266,13 @@ export async function validatePicking(id: string) {
         }
       }
 
-      await tx.stockQuant.upsert({
-        where: { productId_locationId: { productId: line.productId, locationId: line.destLocationId } },
-        create: { productId: line.productId, locationId: line.destLocationId, quantity: line.quantity },
-        update: { quantity: { increment: line.quantity } },
-      });
+      if (picking.pickingType !== "DELIVERY") {
+        await tx.stockQuant.upsert({
+          where: { productId_locationId: { productId: line.productId, locationId: line.destLocationId } },
+          create: { productId: line.productId, locationId: line.destLocationId, quantity: line.quantity },
+          update: { quantity: { increment: line.quantity } },
+        });
+      }
 
       await tx.stockMoveLine.update({ where: { id: line.id }, data: { status: "DONE", doneAt: new Date() } });
     }
