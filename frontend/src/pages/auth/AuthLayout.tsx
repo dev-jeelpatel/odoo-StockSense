@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { ArrowLeftRight, Boxes, Package, TrendingUp, Warehouse } from "lucide-react";
+import { WarehouseIllustration } from "./WarehouseIllustration";
 
 function StatTile({
   icon: Icon,
@@ -55,13 +56,20 @@ export function AuthLayout({
           <span className="text-lg font-semibold">StockSense</span>
         </div>
 
-        <div className="relative space-y-6">
-          <h1 className="max-w-md text-4xl font-semibold leading-tight text-white">
-            Track every move in your warehouse.
-          </h1>
-          <p className="max-w-sm text-white/80">
-            Receipts, deliveries, transfers, and adjustments — one real-time ledger, zero spreadsheets.
-          </p>
+        <div className="relative space-y-5">
+          <div>
+            <h1 className="max-w-md text-3xl font-semibold leading-tight text-white">
+              Track every move in your warehouse.
+            </h1>
+            <p className="mt-2 max-w-sm text-white/80">
+              Receipts, deliveries, transfers, and adjustments — one real-time ledger, zero spreadsheets.
+            </p>
+          </div>
+
+          <div className="flex justify-center py-2">
+            <WarehouseIllustration />
+          </div>
+
           <div className="grid grid-cols-3 gap-3">
             <StatTile icon={Boxes} label="Products tracked" value="1,204" trend="up" />
             <StatTile icon={ArrowLeftRight} label="Moves this week" value="386" trend="up" />
