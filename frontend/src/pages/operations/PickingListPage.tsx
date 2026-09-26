@@ -47,11 +47,15 @@ const COLUMN_LABEL: Record<PickingStatus, string> = {
 
 function PickingCard({ picking, onClick, subtitle }: { picking: Picking; onClick: () => void; subtitle: string }) {
   return (
-    <Card className="cursor-pointer transition-shadow hover:shadow-md" onClick={onClick}>
-      <CardContent className="space-y-1 px-3 py-3">
-        <p className="text-sm font-semibold">{picking.reference}</p>
+    <Card
+      className="cursor-pointer transition-all duration-150 hover:shadow-md hover:-translate-y-0.5"
+      onClick={onClick}
+      style={{ borderColor: picking.isLate ? "oklch(0.577 0.245 27 / 30%)" : undefined }}
+    >
+      <CardContent className="space-y-1.5 px-3 py-3">
+        <p className="text-sm font-semibold text-foreground">{picking.reference}</p>
         <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
-        <p className={cn("text-xs", picking.isLate ? "text-destructive" : "text-muted-foreground")}>
+        <p className={cn("text-xs font-medium", picking.isLate ? "text-destructive" : "text-muted-foreground")}>
           {new Date(picking.scheduledDate).toLocaleDateString()}
           {picking.isLate && " · Late"}
         </p>
@@ -146,60 +150,83 @@ export function PickingListPage({ pickingType }: { pickingType: Exclude<PickingT
 
       {view === "list" ? (
         <div className="flex-1 overflow-y-auto p-6">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Reference</TableHead>
-                <TableHead>{copy.partnerHeader}</TableHead>
-                <TableHead>Schedule Date</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading && (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground">
-                    Loading...
-                  </TableCell>
+          <div className="overflow-hidden rounded-xl border bg-card animate-fade-up">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Reference</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wide">{copy.partnerHeader}</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Schedule Date</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Status</TableHead>
                 </TableRow>
-              )}
-              {!isLoading && pickings?.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground">
-                    No documents found.
-                  </TableCell>
-                </TableRow>
-              )}
-              {pickings?.map((p) => (
-                <TableRow key={p.id} className="cursor-pointer" onClick={() => navigate(`${basePath}/${p.id}`)}>
-                  <TableCell className="font-medium">{p.reference}</TableCell>
-                  <TableCell className="text-muted-foreground">{subtitleFor(p)}</TableCell>
-                  <TableCell className={p.isLate ? "text-destructive" : undefined}>
-                    {new Date(p.scheduledDate).toLocaleDateString()}
-                    {p.isLate && " (Late)"}
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={p.status} />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {isLoading && (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-muted-foreground py-10">
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="size-4 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+                        Loading…
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+                {!isLoading && pickings?.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-muted-foreground py-12">
+                      No documents found.
+                    </TableCell>
+                  </TableRow>
+                )}
+                {pickings?.map((p) => (
+                  <TableRow
+                    key={p.id}
+                    className="cursor-pointer transition-colors hover:bg-primary/[0.02]"
+                    onClick={() => navigate(`${basePath}/${p.id}`)}
+                  >
+                    <TableCell className="font-semibold text-sm">{p.reference}</TableCell>
+                    <TableCell className="text-muted-foreground text-sm">{subtitleFor(p)}</TableCell>
+                    <TableCell className={cn("text-sm", p.isLate ? "text-destructive font-medium" : "text-muted-foreground")}>
+                      {new Date(p.scheduledDate).toLocaleDateString()}
+                      {p.isLate && " (Late)"}
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={p.status} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       ) : (
         <div className="flex-1 overflow-x-auto p-6">
-          <div className="flex h-full gap-4">
+          <div className="flex h-full gap-3">
             {KANBAN_COLUMNS.map((col) => {
               const items = pickings?.filter((p) => p.status === col) ?? [];
               return (
-                <div key={col} className="flex w-64 shrink-0 flex-col">
+                <div key={col} className="flex w-60 shrink-0 flex-col">
                   <div className="mb-2 flex items-center justify-between px-1">
-                    <span className="text-sm font-medium">{COLUMN_LABEL[col]}</span>
-                    <span className="text-xs text-muted-foreground">{items.length}</span>
+                    <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{COLUMN_LABEL[col]}</span>
+                    <span
+                      className="text-xs font-bold tabular-nums"
+                      style={{
+                        background: "var(--primary)",
+                        color: "var(--primary-foreground)",
+                        padding: "1px 7px",
+                        borderRadius: "999px",
+                        fontSize: "0.625rem",
+                      }}
+                    >
+                      {items.length}
+                    </span>
                   </div>
-                  <div className="flex-1 space-y-2 overflow-y-auto rounded-md bg-muted/40 p-2">
+                  <div
+                    className="flex-1 space-y-2 overflow-y-auto rounded-xl p-2"
+                    style={{ background: "var(--muted)", border: "1px solid var(--border)" }}
+                  >
                     {items.length === 0 && (
-                      <p className="p-2 text-center text-xs text-muted-foreground">No documents</p>
+                      <p className="p-3 text-center text-xs text-muted-foreground">No documents</p>
                     )}
                     {items.map((p) => (
                       <PickingCard

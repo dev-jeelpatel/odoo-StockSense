@@ -4,7 +4,6 @@ import { ArrowLeft, Printer } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { getApiErrorMessage } from "@/lib/api-client";
@@ -32,8 +31,11 @@ export function PickingDetailPage() {
 
   if (isLoading || !picking) {
     return (
-      <div className="p-6">
-        <p className="text-sm text-muted-foreground">Loading...</p>
+      <div className="flex h-full items-center justify-center">
+        <div className="flex flex-col items-center gap-3 text-muted-foreground">
+          <div className="size-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+          <p className="text-sm">Loading document…</p>
+        </div>
       </div>
     );
   }
@@ -108,58 +110,82 @@ export function PickingDetailPage() {
       />
 
       <div className="flex-1 overflow-y-auto p-6 print:overflow-visible">
-        <Card className="mb-4">
-          <CardContent className="grid grid-cols-2 gap-4 pt-6 sm:grid-cols-4">
+        {/* Info card */}
+        <div
+          className="mb-5 overflow-hidden rounded-xl border bg-card animate-fade-up"
+          style={{ boxShadow: "0 1px 4px oklch(0 0 0 / 6%)" }}
+        >
+          <div
+            className="px-5 py-3"
+            style={{
+              background: "linear-gradient(135deg, oklch(0.52 0.26 270 / 6%), transparent 60%)",
+              borderBottom: "1px solid var(--border)",
+            }}
+          >
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Document Details</p>
+          </div>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-4 p-5 sm:grid-cols-4">
             <div>
-              <p className="text-xs text-muted-foreground">Status</p>
-              <div className="mt-1">
+              <p className="text-[0.6875rem] font-medium uppercase tracking-wide text-muted-foreground">Status</p>
+              <div className="mt-1.5">
                 <StatusBadge status={picking.status} />
               </div>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Warehouse</p>
-              <p className="text-sm font-medium">{picking.warehouse.name}</p>
+              <p className="text-[0.6875rem] font-medium uppercase tracking-wide text-muted-foreground">Warehouse</p>
+              <p className="mt-1.5 text-sm font-semibold">{picking.warehouse.name}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Scheduled</p>
-              <p className={cn("text-sm font-medium", picking.isLate && "text-destructive")}>
+              <p className="text-[0.6875rem] font-medium uppercase tracking-wide text-muted-foreground">Scheduled</p>
+              <p className={cn("mt-1.5 text-sm font-semibold", picking.isLate && "text-destructive")}>
                 {new Date(picking.scheduledDate).toLocaleDateString()}
                 {picking.isLate && " (Late)"}
               </p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Responsible</p>
-              <p className="text-sm font-medium">{picking.responsibleUser?.name ?? "Unassigned"}</p>
+              <p className="text-[0.6875rem] font-medium uppercase tracking-wide text-muted-foreground">Responsible</p>
+              <p className="mt-1.5 text-sm font-semibold">{picking.responsibleUser?.name ?? "Unassigned"}</p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Product</TableHead>
-              <TableHead>SKU</TableHead>
-              <TableHead className="text-right">Quantity</TableHead>
-              <TableHead>Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {picking.lines.map((line) => (
-              <TableRow key={line.id} className={line.status === "WAITING" ? "bg-destructive/5" : undefined}>
-                <TableCell className={cn("font-medium", line.status === "WAITING" && "text-destructive")}>
-                  {line.product.name}
-                </TableCell>
-                <TableCell className="text-muted-foreground">{line.product.sku}</TableCell>
-                <TableCell className="text-right">
-                  {line.quantity} {line.product.uom.shortCode}
-                </TableCell>
-                <TableCell>
-                  <StatusBadge status={line.status} />
-                </TableCell>
+        {/* Lines table */}
+        <div className="overflow-hidden rounded-xl border bg-card animate-fade-up" style={{ animationDelay: "80ms" }}>
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50">
+                <TableHead className="text-xs font-semibold uppercase tracking-wide">Product</TableHead>
+                <TableHead className="text-xs font-semibold uppercase tracking-wide">SKU</TableHead>
+                <TableHead className="text-right text-xs font-semibold uppercase tracking-wide">Quantity</TableHead>
+                <TableHead className="text-xs font-semibold uppercase tracking-wide">Status</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {picking.lines.map((line) => (
+                <TableRow
+                  key={line.id}
+                  className="transition-colors"
+                  style={{
+                    background: line.status === "WAITING" ? "oklch(0.577 0.245 27 / 4%)" : undefined,
+                  }}
+                >
+                  <TableCell className={cn("font-medium", line.status === "WAITING" && "text-destructive")}>
+                    {line.product.name}
+                  </TableCell>
+                  <TableCell>
+                    <span className="font-mono text-xs text-muted-foreground">{line.product.sku}</span>
+                  </TableCell>
+                  <TableCell className="text-right font-semibold">
+                    {line.quantity} {line.product.uom.shortCode}
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge status={line.status} />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </div>
   );
