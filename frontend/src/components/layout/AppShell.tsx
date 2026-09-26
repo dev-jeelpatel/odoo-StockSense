@@ -4,11 +4,11 @@ import { Topbar } from "./Topbar";
 
 export function AppShell() {
   return (
-    <div className="flex h-svh print:block print:h-auto">
-      <div className="print:hidden">
+    <div className="flex h-svh overflow-hidden print:block print:h-auto">
+      <div className="h-full print:hidden">
         <Sidebar />
       </div>
-      <div className="flex min-w-0 flex-1 flex-col print:block">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden print:block">
         <div className="print:hidden">
           <Topbar />
         </div>
