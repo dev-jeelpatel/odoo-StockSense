@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
+import { LowStockBanner } from "@/components/shared/LowStockBanner";
 
 export function AppShell() {
   return (
@@ -10,6 +11,7 @@ export function AppShell() {
       </div>
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden print:block">
         <div className="print:hidden">
+          <LowStockBanner />
           <Topbar />
         </div>
         <main className="flex-1 overflow-y-auto">
