@@ -10,6 +10,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "tsx prisma/seed.ts",
+    "prisma:seed:bulk": "tsx prisma/seed-bulk.ts",
     "prisma:studio": "prisma studio",
     "lint": "eslint src --ext .ts"
   },
