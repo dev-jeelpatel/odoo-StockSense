@@ -73,18 +73,18 @@ export function GlobalSearch() {
   return (
     <div ref={containerRef} className="relative">
       <div
-        className="flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm transition-colors cursor-text"
-        style={{ background: "var(--muted)", borderColor: open ? "var(--primary)" : "var(--border)", minWidth: 200 }}
+        className="flex w-full max-w-xl items-center gap-2 rounded-lg border px-4 py-2 text-sm transition-colors cursor-text"
+        style={{ background: "var(--muted)", borderColor: open ? "var(--primary)" : "var(--border)", minWidth: 420 }}
         onClick={() => { inputRef.current?.focus(); setOpen(true); }}
       >
-        <Search className="size-3.5 shrink-0 text-muted-foreground" />
+        <Search className="size-4 shrink-0 text-muted-foreground" />
         <input
           ref={inputRef}
           value={query}
           onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
           placeholder="Search... (Ctrl+K)"
-          className="flex-1 bg-transparent outline-none text-xs placeholder:text-muted-foreground min-w-0"
+          className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground min-w-0"
         />
         {query && (
           <button onClick={(e) => { e.stopPropagation(); setQuery(""); }} className="text-muted-foreground hover:text-foreground cursor-pointer">
